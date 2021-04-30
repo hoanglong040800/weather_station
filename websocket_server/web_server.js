@@ -1,62 +1,48 @@
-// const express = require('express')
-// const http = require('http')
-// const ip = require('ip')
-// const { Server } = require('socket.io')
+const http = require('http')
+const WebSocket = require('ws')
+const express = require('express')
+const ip = require('ip')
+const exphbs = require('express-handlebars')
 
-// app = express()
-// const server = http.createServer(app)
-// const io = new Server(server)
-
-// server.listen((port = 3333), function () {
-//   console.log(`Server is running at ${ip.address()}:${port}`)
-// })
-
-// io.on('connection', function (socket) {
-//   console.log('ESP8266 connected')
-//   socket.on('disconnect', function () {
-//     console.log('Disconnected')
-//   })
-//   socket.on('error', function (err) {
-//     console.log(err);
-//   })
-// })
-
-
-
-
-// app.get('/', function (req, res) {
-//   res.send('<h1>Hello world</h1>')
-// })
-
-  
-var http = require("http");
-var WebSocket = require("ws");
-var express = require("express");
-var app = express();
-
-var server = http.createServer(app);
-var ws = new WebSocket.Server({
+// Setup server
+const app = express()
+const server = http.createServer(app)
+const ws = new WebSocket.Server({
   server,
-  // path: "/ws", 
-});
+})
 
-app.get("/", (req, res) => {
-  res.send(`<h1> hello world </h1>`);
-});
+var weatherdata = {
+  tempeture: 37,
+  humidity: 15,
+  pressure: 5,
+  altitude: 10,
+}
 
-ws.on("connection", function (socket) {
-  socket.on("message", function (message) {
-    console.log(message);
-    ws.clients.forEach(function (client) {
-      if (client !== socket && client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
-  });
-  socket.on("ping", function(){
-    console.log("hello");
+// Setup template engine
+app.engine('hbs', exphbs({ extname: '.hbs' }))
+app.set('view engine', 'hbs')
+
+// Socket
+ws.on('connection', function (socket) {
+  socket.on('message', function (message) {
+    console.log(message)
   })
-});
 
-server.listen(3333);
-console.log("Server listening on port 3333");
+  socket.on('weather data', function (data) {
+    console.log(data)
+  })
+
+  socket.on('ping', function () {
+    console.log('Got a ping from client')
+  })
+})
+
+// Routing
+app.get('/', (req, res) => {
+  res.render('home', { layout: false, weatherdata: weatherdata })
+})
+
+// Server listening
+server.listen((PORT = 3333), function () {
+  console.log(`Server is listening at ${ip.address()}:${PORT}`)
+})

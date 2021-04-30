@@ -5,14 +5,13 @@ using namespace websockets;
 
 const char* ssid = "Rainbow Rabbit";
 const char* password = "hoanglong040800";
-char host[] = "192.168.1.3";
+const char* host = "192.168.1.3";
 int port = 3333;
-const char* websocket_server = "192.168.1.3";
 WebsocketsClient client;
 
 
 void onMessageCallback(WebsocketsMessage message) {
-  Serial.print("Got Message: ");
+  Serial.print("Got message from server: ");
   Serial.println(message.data());
 }
 
@@ -50,9 +49,8 @@ void connectWifi() {
 void connectSocket() {
   client.onMessage(onMessageCallback);
   client.onEvent(onEventsCallback);
-  client.connect(websocket_server, port, "/");
-  client.send("Hi Server!");
-  client.ping();
+  client.connect(host, port, "/");
+  client.send("Hi Websocket Server!");
 }
 
 void setup() {
@@ -61,9 +59,15 @@ void setup() {
 
   connectWifi();
   connectSocket();
-  // client.close();
 }
 
 void loop() {
-  client.poll();
+  if (client.available()) {
+    client.poll();
+  }
+  
+  else {
+    Serial.println("Reconnecting to server");
+    client.connect(host, port, "/");
+  }
 }
