@@ -7,6 +7,7 @@ const char* ssid = "Rainbow Rabbit";
 const char* password = "hoanglong040800";
 const char* host = "192.168.1.3";
 int port = 3333;
+float tempeture = 12, humidity = 34, pressure = 56, altitude = 78;
 WebsocketsClient client;
 
 
@@ -50,7 +51,9 @@ void connectSocket() {
   client.onMessage(onMessageCallback);
   client.onEvent(onEventsCallback);
   client.connect(host, port, "/");
-  client.send("Hi Websocket Server!");
+  client.send("ESP8266 say hi to Websocket Server!");
+  client.send("weather data");
+  client.send(String(tempeture)+","+String(humidity)+","+String(pressure)+","+String(altitude));
 }
 
 void setup() {
@@ -65,9 +68,10 @@ void loop() {
   if (client.available()) {
     client.poll();
   }
-  
+
   else {
-    Serial.println("Reconnecting to server");
+    Serial.println("Reconnecting...");
     client.connect(host, port, "/");
   }
+  delay(1000);
 }
